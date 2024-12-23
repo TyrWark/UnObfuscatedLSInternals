@@ -26,7 +26,7 @@ function getSaleID(){
 function getSalePayments(){
 
     //fetch all Payments on the current sale
-    $.getJSON(location.origin+'/API/Account/'+window.merchantos.account.id+'/Sale/'+sid+'.json?load_relations=all').done(
+    $.getJSON(location.origin+'/API/Account/'+document.querySelector("#help_account_id > var").innerText+'/Sale/'+sid+'.json?load_relations=all').done(
 
 
         function(json) {
@@ -182,7 +182,7 @@ function LinkGenerator(){
 //Checks if the Payments Provider is LSPay or 3rd Party Integrated
 function PayProvider(){
 
-    var getPTList = $.getJSON(location.origin+'/API/Account/'+window.merchantos.account.id+'/Sale/'+sid+'.json?load_relations=["SalePayments"]').done(
+    var getPTList = $.getJSON(location.origin+'/API/Account/'+document.querySelector("#help_account_id > var").innerText+'/Sale/'+sid+'.json?load_relations=["SalePayments"]').done(
 
 
         function(json) {
