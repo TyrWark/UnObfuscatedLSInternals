@@ -248,7 +248,7 @@ document.querySelector("#react-root > div > div > section").style.marginBottom= 
             setTimeout(function(){
                 console.log(windowfire.name)
                 console.log(windowfire.close())
-            },4000)
+            },8500)
         },100)
         //         setTimeout(function(){window.focus},500)
 
