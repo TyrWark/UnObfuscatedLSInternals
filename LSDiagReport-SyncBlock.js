@@ -1,3 +1,21 @@
+// ==UserScript==
+// @name         Diagnostic Links for BackOffice + Size
+// @namespace    http://tampermonkey.net/
+// @version      2.0
+// @description  Adds links for easy access to Diag reports. Now with Subscription Email Checking and blocks sync of problematic accounts.
+// @author       Ty Wark
+// @match        https://lightspeedanalytics.net/cl_accounts/settings
+// @match        https://app.lightspeedanalytics.net/embed/explore/*
+// @match        https://app.lightspeedanalytics.net/embed/*
+// @match        https://lightspeedanalytics.net/back_office*
+// @run-at      document-idle
+// @grant       GM_addStyle
+// ==/UserScript==
+
+//Documentation found here https://lightspeedhq.atlassian.net/wiki/spaces/CLOUD/pages/139441487/Looker+Diagnostic+Analytics+Reports
+
+
+
 /* globals jQuery, $, waitForKeyElements */
 
 var SubResp = new Object
@@ -198,9 +216,12 @@ if (window.top === window.self) {
     //Entry Point for Added Menu Elements
     extendDevTools()
 
+    //Entry Point for UnSudo failure detection
+    deadpagedetection()
+
 
     if (window.location.href == "https://lightspeedanalytics.net/cl_accounts/settings"){
-await timer(750)
+        await timer(750)
         var zNode = document.createElement ('div');
         zNode.innerHTML = '<button id="myButton" type="button">'
             + 'Run Diagnostics!</button>'
@@ -213,7 +234,7 @@ await timer(750)
             "click", ButtonClickAction, false
         );
 
-       document.querySelector("#myButton").innerHTML = `<button class="cta">
+        document.querySelector("#myButton").innerHTML = `<button class="cta">
   <span>Run Diagnostics!</span>
   <svg width="15px" height="10px" viewBox="0 0 13 10">
     <path d="M1,5 L11,5"></path>
@@ -221,9 +242,9 @@ await timer(750)
   </svg>
 </button>`
 
-document.querySelector("#react-root > div > div > section").style.marginBottom= "10px"
+       document.querySelector("#react-root > div > div > section").style.marginBottom= "10px"
 
-        }else{console.log("Incorrect Page")}
+    }else{console.log("Incorrect Page")}
 
 
 
@@ -384,9 +405,9 @@ document.querySelector("#react-root > div > div > section").style.marginBottom= 
     }
 
 
-     //CSS STYLING
-        document.body.appendChild(document.createElement('style')).textContent = `
-   
+    //CSS STYLING
+    document.body.appendChild(document.createElement('style')).textContent = `
+
 .cta {
   position: relative;
   margin: auto;
@@ -598,10 +619,10 @@ async function GetSubs(){
 
     await fetch("https://lightspeedanalytics.net/account-admin/subscriptions", {
         "headers": {
-          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-          "accept-language": "en-US,en;q=0.9",
-          "cache-control": "max-age=0",
-          "upgrade-insecure-requests": "1"
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-language": "en-US,en;q=0.9",
+            "cache-control": "max-age=0",
+            "upgrade-insecure-requests": "1"
         },
         "referrer": "https://lightspeedanalytics.net/enterprises/33",
         "referrerPolicy": "strict-origin-when-cross-origin",
@@ -609,11 +630,11 @@ async function GetSubs(){
         "method": "GET",
         "mode": "cors",
         "credentials": "same-origin"
-      }) .then(function(response) {
+    }) .then(function(response) {
         return response.text();
-      }).then(function(data) {
+    }).then(function(data) {
         SubResp = data; // this will be a string
-      });
+    });
 
 
 
@@ -634,56 +655,56 @@ function Slicer(String){
 
 function CleanResp(array){
     for (let i = 0; i < array.length; i++) {
-     array[i] = array[i].replaceAll(" ","")
-     array[i] = array[i].replaceAll("\n","")
-     array[i] = array[i].replaceAll("<td>","")
-     array[i] = array[i].replaceAll("<tr>","")
-     array[i] = array[i].replaceAll("<tdclass=","")
-     array[i] = array[i].split('</td>')
+        array[i] = array[i].replaceAll(" ","")
+        array[i] = array[i].replaceAll("\n","")
+        array[i] = array[i].replaceAll("<td>","")
+        array[i] = array[i].replaceAll("<tr>","")
+        array[i] = array[i].replaceAll("<tdclass=","")
+        array[i] = array[i].split('</td>')
     }
-console.log(array)
-array = array
+    console.log(array)
+    array = array
 }
 
 
 
 function CleanSubArray(ParentArray){
 
-for (let i = 0; i < ParentArray.length; i++) {
+    for (let i = 0; i < ParentArray.length; i++) {
 
 
-    ParentArray[i].pop()
-    ParentArray[i].pop()
-    try{ParentArray[i][3] = ParentArray[i][3].substring(46,ParentArray[i][3].length-1)}catch{null}
+        ParentArray[i].pop()
+        ParentArray[i].pop()
+        try{ParentArray[i][3] = ParentArray[i][3].substring(46,ParentArray[i][3].length-1)}catch{null}
 
 
 
-    //Button Data ID NOT REPORT ID
-    //try{ParentArray[i].push(ParentArray[i][1].substring(7,12))}catch{null}
+        //Button Data ID NOT REPORT ID
+        //try{ParentArray[i].push(ParentArray[i][1].substring(7,12))}catch{null}
 
-    for (let t = 0; t < ParentArray[i].length; t++) {
-    try{ParentArray[i][t] = ParentArray[i][t].split('">')}catch{null}
-     try{ParentArray[i][t] = ParentArray[i][t].split('"subscriptions">')}catch{null}
-     try{ParentArray[i][t] = ParentArray[i][t].split('"subscriptions">')}catch{null}
-     try{
-        if(ParentArray[i][t].length == 2){
-            ParentArray[i][t] = ParentArray[i][t][1]
-        }else{ParentArray[i][t] = ParentArray[i][t][0]}
+        for (let t = 0; t < ParentArray[i].length; t++) {
+            try{ParentArray[i][t] = ParentArray[i][t].split('">')}catch{null}
+            try{ParentArray[i][t] = ParentArray[i][t].split('"subscriptions">')}catch{null}
+            try{ParentArray[i][t] = ParentArray[i][t].split('"subscriptions">')}catch{null}
+            try{
+                if(ParentArray[i][t].length == 2){
+                    ParentArray[i][t] = ParentArray[i][t][1]
+                }else{ParentArray[i][t] = ParentArray[i][t][0]}
+            }
+            catch{null}
+
+            //console.log(ParentArray[i][t])
+            if(ParentArray[i][3].length == 15){
+
+                ParentArray[i][3] = "enabled"
+
+            }
+        }
+
     }
-   catch{null}
 
-     //console.log(ParentArray[i][t])
-     if(ParentArray[i][3].length == 15){
-
-        ParentArray[i][3] = "enabled"
-
-     }
-   }
-
-}
-
-console.log(ParentArray)
-ParentArray = ParentArray
+    console.log(ParentArray)
+    ParentArray = ParentArray
 
 }
 
@@ -724,16 +745,16 @@ function CheckEmails(){
 
     for (let i =1; i < numberofrows; i++){
         if(i !=1){
-        let query = document.querySelector(`#maintable > tbody > tr:nth-child(${i}) > td:nth-child(1)`)
-        console.log(isValidEmail(query.innerText))
-        if(isValidEmail(query.innerText)==false){
-            query.style.backgroundColor = "red"
-        }
+            let query = document.querySelector(`#maintable > tbody > tr:nth-child(${i}) > td:nth-child(1)`)
+            console.log(isValidEmail(query.innerText))
+            if(isValidEmail(query.innerText)==false){
+                query.style.backgroundColor = "red"
+            }
 
         }
 
 
-     }
+    }
 
 
 
@@ -2813,104 +2834,161 @@ const dangerlist = [
     "145752",
     "303937",
     "126867",
-  ];
+];
 
 
-  //Entrypoint
-  engine();
-  async function engine() {
-      await waitForElm("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4");
-      PageUpdateCheck();
-  }
+//Entrypoint
+engine();
+async function engine() {
+    await waitForElm("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4");
+    PageUpdateCheck();
+}
 
 
-  //Check RAD box for match against Danger List
-  async function PageUpdateCheck() {
-      setInterval(function()
-      {
-          if (window.location.pathname == "/back_office") {
-              try {
-                  if (dangerlist.includes(document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText)) {
-                      Scanner();
-                      RadLink()
+//Check RAD box for match against Danger List
+async function PageUpdateCheck() {
+    setInterval(function()
+                {
+        if (window.location.pathname == "/back_office") {
+            try {
+                if (dangerlist.includes(document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText)) {
+                    Scanner();
 
-                  }
-              }
-              catch {
-                  console.log("Not on danger list.");
-                  RadLink()
+                }
+            }
+            catch {
+                console.log("Not on danger list.");
 
-              }
+            }
 
 
 
-          }
-      }, 1000);
-  }
+        }
+    }, 1000);
+    //Starting Point for Sync Reporter
+    sendmessages()
+    RadLink()
+}
 
 
-  //Edit Full Sync Box and disable it
-  function Scanner() {
-      if (document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span").innerText == "Full Sync:") {
+//Edit Full Sync Box and disable it
+function Scanner() {
+    if (document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span").innerText == "Full Sync:") {
         document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span").innerHTML = `Do Not Sync, Account too large. <a href="https://lightspeedhq.slack.com/archives/C042STJGNP4"> Contact Analytics Devs/Ambassadors if you wish to Sync. `;
         document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span").style.backgroundColor = "yellow";
         document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > div").style.backgroundColor = "yellow";
         document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > div > input[type=checkbox]").disabled = true;
         OverrideButton();
-      }
-  }
+    }
+}
 
 
-  //Allow manual overrides
-  async function OverrideButton() {
+//Allow manual overrides
+async function OverrideButton() {
     const button = document.createElement("button");
     button.innerText = "I know what I'm doing";
     button.addEventListener("click", async () => {
-      document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > div > input[type=checkbox]").disabled = false;
-      document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span > button").remove();
+        document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > div > input[type=checkbox]").disabled = false;
+        document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span > button").remove();
+
     });
     document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > span").append(button);
-  }
+}
 
 
-  // Wait for element to appear on page before trying to modify it:
-  function waitForElm(selector) {
-      return new Promise(resolve => {
-          if (document.querySelector(selector)) {
-              return resolve(document.querySelector(selector));
-          }
-          const observer = new MutationObserver(mutations => {
-              if (document.querySelector(selector)) {
-                  resolve(document.querySelector(selector));
-                  observer.disconnect();
-              }
-          });
-          observer.observe(document.body, {
-              childList: true,
-              subtree: true
-          });
-      });
-  }
+// Wait for element to appear on page before trying to modify it:
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
 
 
 function RadLink(){
 
-try {
+    try {
 
-if(document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerHTML == `<h4>${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText}</h4>`)
-{null}
-else{document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerHTML = `<a href="https://radcloud.merchantos.com/?name=system.views.account&form_name=view&id=${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText}">${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText} `
+        if(document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerHTML == `<h4>${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText}</h4>`)
+        {null}
+        else{document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerHTML = `<a href="https://radcloud.merchantos.com/?name=system.views.account&form_name=view&id=${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText}">${document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4").innerText} `
+            }
+
+    } catch (error) {
+        null
+    }
+
+
+
 }
 
-} catch (error) {
-    null
+
+//Add Event on Full Sync selector
+function sendmessages(){
+    console.log("Masses")
+
+    document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.accountSettingsBox > div:nth-child(9) > div.content-item.full-sync > div > input[type=checkbox]").onclick = function(){
+
+        var rad = document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-right > div.container-card.idBox > div:nth-child(2) > div.card-stat > h4")
+        var b = document.querySelector("#o-wrapper > header > nav > ul.cd-user-nav > li > a").dataset.tipsy
+        var a = rad.innerText + " / " + document.querySelector("#react-root > div > div:nth-child(4) > div > div > section > div.introduction-full > div > h1").innerText
+        var c = false
+
+
+        if(dangerlist.includes(rad.innerText)){
+
+            c = true
+
+        }
+
+        PosttoSlack(a,b,c)
+    }
+
+
 }
 
 
 
+
+
+
+//Scream at slack
+async function PosttoSlack(a,b,c){
+
+
+    console.log(a)
+
+    console.log(b)
+
+    console.log(c)
+
+
+    const rawResponse = await fetch('https://hooks.zapier.com/hooks/catch/19346638/2l4mq8z/', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        mode:"no-cors",
+        body: JSON.stringify({RAD: a, User: b, Flagged_Account: c})
+    });
+
+
+
+
+
 }
-
-
 
 
 async function extendDevTools(){
@@ -2983,13 +3061,32 @@ async function extendDevTools(){
 
 
 
+function deadpagedetection(){
+
+
+setInterval(detectblanks,2500)
+
+
+}
+
+function detectblanks(){
+
+    console.log("Loop")
+    var counter = 0
+    
+    if(document.querySelector("#react-root").innerHTML.length === 0){
+        if(counter === 1){console.log("Second Fail")}
+        else{counter++}
+
+       
+
+    }else{counter = 0}
+
+}
 
 
 
-
-
-
-  /* Praise the Omnissiah
+/* Praise the Omnissiah
                                            &&&&&&&&&&:
                                         &&&&&&&&&&&&&&&&
                                         &&&&&&&&&&&&&&&&&&&&
