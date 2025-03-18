@@ -3059,26 +3059,30 @@ async function extendDevTools(){
 }
 
 
-
+var counter = 0
 
 function deadpagedetection(){
 
 
-setInterval(detectblanks,2500)
+    setInterval(detectblanks,1000)
 
 
 }
 
-function detectblanks(){
+async function detectblanks(){
 
     console.log("Loop")
-    var counter = 0
-    
+
     if(document.querySelector("#react-root").innerHTML.length === 0){
-        if(counter === 1){console.log("Second Fail")}
+        if(counter === 1){
+            console.log("Second Fail")
+            location.reload()
+
+
+        }
         else{counter++}
 
-       
+
 
     }else{counter = 0}
 
